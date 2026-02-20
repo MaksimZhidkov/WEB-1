@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ud8P7mtTMCU7/41P5kb4a5wagOMjf7qeCCB5M415hK0=",
+  "Hash": "Od0qegV1G99PPf9r9SJvLzFDe2gkjIFqvUhaNbDMSGs=",
   "Source": "MyApp.WebApi",
   "BasePath": "_content/MyApp.WebApi",
   "Mode": "Default",
@@ -16,6 +16,25 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/assets/auth.js",
+      "SourceId": "MyApp.WebApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/",
+      "BasePath": "_content/MyApp.WebApi",
+      "RelativePath": "assets/auth.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/assets/auth.js"
+    },
     {
       "Identity": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/assets/site.css",
       "SourceId": "MyApp.WebApi",
@@ -148,6 +167,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/pages/rating.html"
+    },
+    {
+      "Identity": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/uploads/23acf656a52f4dd9b507b7280e6ab5fc.jpeg",
+      "SourceId": "MyApp.WebApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/",
+      "BasePath": "_content/MyApp.WebApi",
+      "RelativePath": "uploads/23acf656a52f4dd9b507b7280e6ab5fc.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/23acf656a52f4dd9b507b7280e6ab5fc.jpeg"
     }
   ]
 }

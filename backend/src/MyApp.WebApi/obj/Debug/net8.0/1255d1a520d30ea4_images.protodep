@@ -1,0 +1,2 @@
+obj/Debug/net8.0/Protos/Images.cs \
+obj/Debug/net8.0/Protos/ImagesGrpc.cs: Protos/images.proto

@@ -13,6 +13,42 @@
   <div class="panel">
     <h2>Добавление и удаление изображений</h2>
 
+    <div class="grid" style="margin-bottom:14px">
+      <div class="col-6">
+        <div class="panel" style="padding:14px">
+          <h2 style="margin-bottom:8px">Авторизация</h2>
+          <p style="margin:0;color:var(--muted)">
+            Загрузка и удаление требуют JWT (роль user/admin). Войди, чтобы POST/DELETE шли с Bearer.
+          </p>
+
+          <form id="loginForm" style="margin-top:12px">
+            <div class="field">
+              <label>Email</label>
+              <input name="email" placeholder="user@local" value="user@local" required />
+            </div>
+            <div class="field">
+              <label>Пароль</label>
+              <input name="password" type="password" placeholder="User123$" value="User123$" required />
+            </div>
+            <div class="btns">
+              <button type="submit">Войти</button>
+              <button type="button" class="secondary" id="logoutBtn">Выйти</button>
+            </div>
+            <div class="toast" id="authStatus"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-6">
+        <div class="panel" style="padding:14px">
+          <h2 style="margin-bottom:8px">Правила</h2>
+          <p style="margin:0;color:var(--muted)">
+            Хранилище в памяти ограничено 50 записями. Файлы сохраняются на сервере в <code>wwwroot/uploads</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="grid">
       <div class="col-6">
         <form id="uploadForm">
@@ -34,9 +70,9 @@
 
       <div class="col-6">
         <div class="panel" style="padding:14px">
-          <h2 style="margin-bottom:8px">Правила</h2>
+          <h2 style="margin-bottom:8px">Подсказка</h2>
           <p style="margin:0;color:var(--muted)">
-            Хранилище в памяти ограничено 50 записями. Файлы сохраняются на сервере в <code>wwwroot/uploads</code>.
+            Если видишь 401/403 — войди. Если 405 — смотри подробности в алерте (Allow + ответ сервера).
           </p>
         </div>
       </div>
@@ -49,6 +85,8 @@
   </div>
 </div>
 
+<script src="/assets/auth.js"></script>
+
 <script>
 async function loadNav(){
   const r = await fetch('/pages/_nav.html');
@@ -59,6 +97,31 @@ function setStatus(text){
   document.getElementById('status').textContent = text || '';
 }
 
+function setAuthStatus(text){
+  document.getElementById('authStatus').textContent = text || '';
+}
+
+function hasToken(){
+  return !!(window.auth && window.auth.getToken && window.auth.getToken());
+}
+
+function renderAuthState(){
+  setAuthStatus(hasToken() ? 'Токен сохранён. POST/DELETE к /api/ будут с Authorization.' : 'Токена нет. Нажми «Войти».');
+}
+
+async function readTextSafe(res){
+  try { return await res.text(); } catch { return ''; }
+}
+
+function showHttpError(prefix, res, body){
+  const allow = res.headers ? (res.headers.get('Allow') || '') : '';
+  const msg =
+    prefix + ': ' + res.status +
+    (allow ? ('\\nAllow: ' + allow) : '') +
+    (body ? ('\\n' + body) : '');
+  alert(msg);
+}
+
 async function refresh(){
   const r = await fetch('/api/images?page=1&pageSize=12');
   const data = await r.json();
@@ -66,12 +129,13 @@ async function refresh(){
   const wrap = document.getElementById('cards');
   wrap.innerHTML = '';
 
-  if(!data.items.length){
+  const items = data.items || [];
+  if(!items.length){
     wrap.innerHTML = '<div class="badge">Пока нет изображений. Загрузите первое.</div>';
     return;
   }
 
-  data.items.forEach(x => {
+  items.forEach(x => {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
@@ -94,9 +158,23 @@ async function refresh(){
   wrap.querySelectorAll('button[data-id]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.getAttribute('data-id');
-      const res = await fetch('/api/images/' + id, { method:'DELETE' });
-      if(res.status===204) refresh();
-      else alert('Ошибка удаления: ' + res.status);
+
+      try{
+        const res = await apiFetch('/api/images/' + id, { method:'DELETE' });
+
+        if(res.status === 401 || res.status === 403){
+          alert('Нет доступа. Сначала войди (роль user/admin).');
+          return;
+        }
+
+        if(res.status===204) refresh();
+        else{
+          const body = await readTextSafe(res);
+          showHttpError('Ошибка удаления', res, body);
+        }
+      }catch(e){
+        alert('Ошибка удаления: ' + (e && e.message ? e.message : e));
+      }
     });
   });
 }
@@ -104,23 +182,62 @@ async function refresh(){
 document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   setStatus('Загрузка...');
-  const fd = new FormData(e.target);
-  const res = await fetch('/api/images/upload', { method:'POST', body: fd });
 
-  if(res.status===201){
-    e.target.reset();
-    setStatus('Готово: изображение загружено.');
-    refresh();
-  } else {
-    const msg = await res.text();
+  const fd = new FormData(e.target);
+
+  try{
+    const res = await apiFetch('/api/images/upload', { method:'POST', body: fd });
+
+    if(res.status===401 || res.status===403){
+      setStatus('');
+      alert('Нет доступа. Сначала войди (роль user/admin).');
+      return;
+    }
+
+    if(res.status===201){
+      e.target.reset();
+      setStatus('Готово: изображение загружено.');
+      refresh();
+      return;
+    }
+
+    const body = await readTextSafe(res);
     setStatus('');
-    alert('Ошибка загрузки: ' + res.status + '\\n' + msg);
+    showHttpError('Ошибка загрузки', res, body);
+  }catch(err){
+    setStatus('');
+    alert('Ошибка загрузки: ' + (err && err.message ? err.message : err));
   }
 });
 
 document.getElementById('refresh').addEventListener('click', refresh);
 
-loadNav().then(refresh);
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  setAuthStatus('Вход...');
+
+  const fd = new FormData(e.target);
+  const email = String(fd.get('email') || '').trim();
+  const password = String(fd.get('password') || '');
+
+  try{
+    await window.auth.login(email, password);
+    renderAuthState();
+  }catch(err){
+    setAuthStatus('');
+    alert('Ошибка входа: ' + (err && err.message ? err.message : err));
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  window.auth.setToken('');
+  renderAuthState();
+});
+
+loadNav().then(()=>{
+  renderAuthState();
+  refresh();
+});
 </script>
 </body>
 </html>

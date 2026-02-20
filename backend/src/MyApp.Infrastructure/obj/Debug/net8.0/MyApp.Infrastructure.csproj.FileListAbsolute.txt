@@ -10,8 +10,11 @@
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.AssemblyInfoInputs.cache
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.AssemblyInfo.cs
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.csproj.CoreCompileInputs.cache
-/home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.In.4513676F.Up2Date
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.dll
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/refint/MyApp.Infrastructure.dll
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.pdb
 /home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/ref/MyApp.Infrastructure.dll
+/home/going-forward/lab-web/backend/src/MyApp.Infrastructure/bin/Debug/net8.0/MyApp.Infrastructure.runtimeconfig.json
+/home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.sourcelink.json
+/home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.genruntimeconfig.cache
+/home/going-forward/lab-web/backend/src/MyApp.Infrastructure/obj/Debug/net8.0/MyApp.Infrastructure.csproj.CopyComplete

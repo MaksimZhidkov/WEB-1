@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApp.Application.Services;
 
@@ -9,10 +10,7 @@ public sealed class ImagesController : ControllerBase
 {
     private readonly ImageService _service;
 
-    public ImagesController(ImageService service)
-    {
-        _service = service;
-    }
+    public ImagesController(ImageService service) => _service = service;
 
     public sealed class UploadImageRequest
     {
@@ -20,54 +18,85 @@ public sealed class ImagesController : ControllerBase
         public required IFormFile File { get; init; }
     }
 
+    [Authorize(Roles = "user,admin")]
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(5 * 1024 * 1024)]
     public async Task<IActionResult> Upload([FromForm] UploadImageRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(req.Title)) return BadRequest("Название обязательно.");
-        if (req.File is null || req.File.Length == 0) return BadRequest("Файл обязателен.");
+        if (string.IsNullOrWhiteSpace(req.Title)) return BadRequest("Название обязательно");
+        if (req.File is null || req.File.Length == 0) return BadRequest("Файл обязателен");
 
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        try
-        {
-            await using var stream = req.File.OpenReadStream();
-            var dto = await _service.UploadAsync(
-                req.Title,
-                stream,
-                req.File.FileName,
-                req.File.ContentType,
-                baseUrl,
-                ct);
+        var userId = User.Claims.FirstOrDefault(c => c.Type.EndsWith("nameidentifier", StringComparison.OrdinalIgnoreCase))?.Value;
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
 
-            return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
-        }
-        catch (InvalidOperationException ex)
+        await using var stream = req.File.OpenReadStream();
+
+        var created = await _service.UploadAsync(
+            title: req.Title,
+            contentType: req.File.ContentType ?? "application/octet-stream",
+            sizeBytes: req.File.Length,
+            fileStream: stream,
+            originalFileName: req.File.FileName,
+            userId: userId,
+            ct: ct);
+
+        return Ok(new
         {
-            return Conflict(ex.Message);
-        }
+            created.Id,
+            created.Title,
+            created.FileName,
+            created.ContentType,
+            created.SizeBytes,
+            created.UploadedAt
+        });
     }
 
+    [Authorize(Roles = "user,admin")]
     [HttpGet]
-    public IActionResult GetPage([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var result = _service.GetPage(page, pageSize, baseUrl);
-        return Ok(result);
+        var list = await _service.ListAsync(ct);
+        return Ok(list.Select(x => new
+        {
+            x.Id,
+            x.Title,
+            x.FileName,
+            x.ContentType,
+            x.SizeBytes,
+            x.UploadedAt
+        }));
     }
 
+    [Authorize(Roles = "user,admin")]
     [HttpGet("{id:guid}")]
-    public IActionResult GetById([FromRoute] Guid id)
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
     {
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var dto = _service.Get(id, baseUrl);
-        return dto is null ? NotFound() : Ok(dto);
+        var img = await _service.GetAsync(id, ct);
+        if (img is null) return NotFound();
+
+        return Ok(new
+        {
+            img.Id,
+            img.Title,
+            img.FileName,
+            img.ContentType,
+            img.SizeBytes,
+            img.UploadedAt
+        });
     }
 
-    [HttpDelete("{id:guid}")]
-    public IActionResult Delete([FromRoute] Guid id)
+    // скачивание — только admin (пример разграничения)
+    [Authorize(Roles = "admin")]
+    [HttpGet("{id:guid}/download")]
+    public async Task<IActionResult> Download(Guid id, CancellationToken ct)
     {
-        var ok = _service.Delete(id);
-        return ok ? NoContent() : NotFound();
+        var img = await _service.GetAsync(id, ct);
+        if (img is null) return NotFound();
+
+        var path = _service.GetFilePath(img);
+        if (!System.IO.File.Exists(path)) return NotFound("File missing on disk");
+
+        return PhysicalFile(path, img.ContentType, fileDownloadName: img.FileName);
     }
 }

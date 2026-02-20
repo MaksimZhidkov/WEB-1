@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApp.Application.Services;
 
@@ -9,10 +10,7 @@ public sealed class VotesController : ControllerBase
 {
     private readonly ImageService _service;
 
-    public VotesController(ImageService service)
-    {
-        _service = service;
-    }
+    public VotesController(ImageService service) => _service = service;
 
     public sealed class VoteRequest
     {
@@ -20,6 +18,7 @@ public sealed class VotesController : ControllerBase
         public required bool IsLike { get; init; }
     }
 
+    [Authorize(Roles = "user,admin")]
     [HttpPost]
     public IActionResult Vote([FromRoute] Guid id, [FromBody] VoteRequest req)
     {
@@ -32,6 +31,7 @@ public sealed class VotesController : ControllerBase
         catch (ArgumentException ex) { return BadRequest(ex.Message); }
     }
 
+    [Authorize(Roles = "user,admin")]
     [HttpDelete]
     public IActionResult Unvote([FromRoute] Guid id, [FromQuery] string userName)
     {

@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/assets/auth.js",
+      "PackagePath": "staticwebassets/assets/auth.js"
+    },
+    {
       "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/assets/site.css",
       "PackagePath": "staticwebassets/assets/site.css"
     },
@@ -27,6 +31,10 @@
     {
       "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/rating.html",
       "PackagePath": "staticwebassets/pages/rating.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/uploads/23acf656a52f4dd9b507b7280e6ab5fc.jpeg",
+      "PackagePath": "staticwebassets/uploads/23acf656a52f4dd9b507b7280e6ab5fc.jpeg"
     },
     {
       "Id": "obj/Debug/net8.0/staticwebassets/msbuild.MyApp.WebApi.Microsoft.AspNetCore.StaticWebAssets.props",

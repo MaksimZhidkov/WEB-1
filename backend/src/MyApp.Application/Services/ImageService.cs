@@ -1,100 +1,148 @@
-using MyApp.Application.DTO;
-using MyApp.Application.Interfaces;
-using MyApp.Domain.Entities;
+using System.Collections.Concurrent;
+using MyApp.Application.Models;
+using MyApp.Application.Repositories;
 
 namespace MyApp.Application.Services;
 
 public sealed class ImageService
 {
     private readonly IImageRepository _repo;
-    private readonly IFileStorage _files;
+    private readonly string _uploadsPath;
 
-    public ImageService(IImageRepository repo, IFileStorage files)
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, byte>> _votes = new();
+
+    public ImageService(IImageRepository repo, string uploadsPath)
     {
         _repo = repo;
-        _files = files;
+        _uploadsPath = uploadsPath;
+        Directory.CreateDirectory(_uploadsPath);
     }
 
-    public async Task<ImageDto> UploadAsync(
+    public async Task<ImageRecord> UploadAsync(
         string title,
-        Stream content,
-        string originalFileName,
         string contentType,
-        string baseUrl,
+        long sizeBytes,
+        Stream fileStream,
+        string originalFileName,
+        string userId,
         CancellationToken ct)
     {
-        var relative = await _files.SaveAsync(content, originalFileName, contentType, ct);
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException("Название обязательно", nameof(title));
 
-        var item = new ImageItem
+        if (sizeBytes <= 0)
+            throw new ArgumentException("Файл пустой", nameof(sizeBytes));
+
+        var safeName = MakeSafeFileName(originalFileName);
+        var storedName = $"{Guid.NewGuid():N}_{safeName}";
+        var fullPath = Path.Combine(_uploadsPath, storedName);
+
+        await using (var outStream = File.Create(fullPath))
+        {
+            await fileStream.CopyToAsync(outStream, ct);
+        }
+
+        var rec = new ImageRecord
         {
             Title = title.Trim(),
-            RelativePath = relative
+            FileName = storedName,
+            ContentType = contentType,
+            SizeBytes = sizeBytes,
+            UploadedByUserId = userId
         };
 
-        item = _repo.Add(item);
+        var created = await _repo.AddAsync(rec, ct);
+        _votes.TryAdd(created.Id, new ConcurrentDictionary<string, byte>());
 
-        return ToDto(item, baseUrl);
+        return created;
     }
 
-    public PagedResult<ImageDto> GetPage(int page, int pageSize, string baseUrl)
+    public Task<ImageRecord?> GetAsync(Guid id, CancellationToken ct) => _repo.GetAsync(id, ct);
+
+    public Task<IReadOnlyList<ImageRecord>> ListAsync(CancellationToken ct) => _repo.ListAsync(ct);
+
+    public string GetFilePath(ImageRecord rec) => Path.Combine(_uploadsPath, rec.FileName);
+
+    public void Vote(Guid imageId, string userName, bool isLike)
     {
-        var items = _repo.GetPage(page, pageSize, out var total);
-        return new PagedResult<ImageDto>
+        if (imageId == Guid.Empty) throw new ArgumentException("imageId", nameof(imageId));
+        if (string.IsNullOrWhiteSpace(userName)) throw new ArgumentException("userName", nameof(userName));
+
+        var img = _repo.GetAsync(imageId, CancellationToken.None).GetAwaiter().GetResult();
+        if (img is null) throw new KeyNotFoundException();
+
+        if (isLike)
+            VoteAsync(imageId, userName, CancellationToken.None).GetAwaiter().GetResult();
+        else
+            UnvoteAsync(imageId, userName, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    public void Unvote(Guid imageId, string userName)
+    {
+        if (imageId == Guid.Empty) throw new ArgumentException("imageId", nameof(imageId));
+        if (string.IsNullOrWhiteSpace(userName)) throw new ArgumentException("userName", nameof(userName));
+
+        var img = _repo.GetAsync(imageId, CancellationToken.None).GetAwaiter().GetResult();
+        if (img is null) throw new KeyNotFoundException();
+
+        UnvoteAsync(imageId, userName, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    public IReadOnlyList<ImageRatingItem> GetRatingTop(int top, string baseUrl)
+    {
+        if (top <= 0) top = 50;
+        return GetRatingTopAsync(top, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    public Task VoteAsync(Guid imageId, string userId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("userId", nameof(userId));
+
+        var set = _votes.GetOrAdd(imageId, _ => new ConcurrentDictionary<string, byte>());
+        set[userId] = 1;
+        return Task.CompletedTask;
+    }
+
+    public Task UnvoteAsync(Guid imageId, string userId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("userId", nameof(userId));
+
+        if (_votes.TryGetValue(imageId, out var set))
+            set.TryRemove(userId, out _);
+
+        return Task.CompletedTask;
+    }
+
+    public async Task<IReadOnlyList<ImageRatingItem>> GetRatingTopAsync(int take, CancellationToken ct)
+    {
+        if (take <= 0) take = 10;
+
+        var images = await _repo.ListAsync(ct);
+
+        var items = images.Select(img =>
         {
-            Items = items.Select(x => ToDto(x, baseUrl)).ToList(),
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = total
-        };
+            var votes = _votes.TryGetValue(img.Id, out var set) ? set.Count : 0;
+            return new ImageRatingItem
+            {
+                ImageId = img.Id,
+                Title = img.Title,
+                Votes = votes
+            };
+        });
+
+        return items
+            .OrderByDescending(x => x.Votes)
+            .ThenBy(x => x.Title)
+            .Take(take)
+            .ToList();
     }
 
-    public ImageDto? Get(Guid id, string baseUrl)
+    private static string MakeSafeFileName(string name)
     {
-        var item = _repo.Get(id);
-        return item is null ? null : ToDto(item, baseUrl);
-    }
-
-    public bool Delete(Guid id)
-    {
-        var item = _repo.Get(id);
-        if (item is null) return false;
-
-        var ok = _repo.Delete(id);
-        if (ok)
-        {
-            _files.Delete(item.RelativePath);
-        }
-        return ok;
-    }
-
-    public void Vote(Guid id, string userName, bool isLike) => _repo.SetVote(id, userName, isLike);
-    public void Unvote(Guid id, string userName) => _repo.RemoveVote(id, userName);
-
-    public IReadOnlyList<RatingItemDto> GetRatingTop(int top, string baseUrl)
-        => _repo.GetRatingTop(top).Select(x => new RatingItemDto
-        {
-            Id = x.Id,
-            Title = x.Title,
-            Url = BuildUrl(baseUrl, x.RelativePath),
-            Likes = x.LikesCount,
-            Dislikes = x.DislikesCount,
-            Score = x.Score
-        }).ToList();
-
-    private static ImageDto ToDto(ImageItem x, string baseUrl) => new()
-    {
-        Id = x.Id,
-        Title = x.Title,
-        Url = BuildUrl(baseUrl, x.RelativePath),
-        CreatedAtUtc = x.CreatedAtUtc,
-        Likes = x.LikesCount,
-        Dislikes = x.DislikesCount,
-        Score = x.Score
-    };
-
-    private static string BuildUrl(string baseUrl, string relativePath)
-    {
-        if (relativePath.StartsWith("/")) relativePath = relativePath[1..];
-        return $"{baseUrl.TrimEnd('/')}/{relativePath}";
+        var bad = Path.GetInvalidFileNameChars();
+        var cleaned = new string(name.Select(ch => bad.Contains(ch) ? '_' : ch).ToArray());
+        return string.IsNullOrWhiteSpace(cleaned) ? "file" : cleaned;
     }
 }
