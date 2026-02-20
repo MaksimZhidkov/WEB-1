@@ -1,0 +1,94 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "MyApp.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/MyApp.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/MyApp.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MyApp.Domain/1.0.0": {
+      "type": "project",
+      "path": "../MyApp.Domain/MyApp.Domain.csproj",
+      "msbuildProject": "../MyApp.Domain/MyApp.Domain.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "MyApp.Domain >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/going-forward/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/home/going-forward/lab-web/backend/src/MyApp.Application/MyApp.Application.csproj",
+      "projectName": "MyApp.Application",
+      "projectPath": "/home/going-forward/lab-web/backend/src/MyApp.Application/MyApp.Application.csproj",
+      "packagesPath": "/home/going-forward/.nuget/packages/",
+      "outputPath": "/home/going-forward/lab-web/backend/src/MyApp.Application/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/home/going-forward/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "/home/going-forward/lab-web/backend/src/MyApp.Domain/MyApp.Domain.csproj": {
+              "projectPath": "/home/going-forward/lab-web/backend/src/MyApp.Domain/MyApp.Domain.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/snap/dotnet-sdk/256/sdk/8.0.407/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

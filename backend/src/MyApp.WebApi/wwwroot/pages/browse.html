@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Просмотр</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="panel">
+    <h2>Постраничный просмотр и голосование</h2>
+
+    <div class="grid">
+      <div class="col-6">
+        <div class="field">
+          <label>Имя пользователя (для «нравится/не нравится»)</label>
+          <input id="user" value="пользователь1" />
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="btns" style="justify-content:flex-end">
+          <button class="secondary" id="prev">Назад</button>
+          <span class="badge" id="pageInfo">Страница</span>
+          <button class="secondary" id="next">Вперед</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+    <div id="cards" class="cards"></div>
+  </div>
+</div>
+
+<script>
+let page = 1;
+const pageSize = 9;
+
+async function loadNav(){
+  const r = await fetch('/pages/_nav.html');
+  document.getElementById('nav').innerHTML = await r.text();
+}
+
+function getUser(){
+  return document.getElementById('user').value.trim();
+}
+
+async function load(){
+  const r = await fetch(`/api/images?page=${page}&pageSize=${pageSize}`);
+  const data = await r.json();
+
+  const pages = data.totalPages || 1;
+  document.getElementById('pageInfo').textContent =
+    `Стр. ${data.page} из ${pages} (всего: ${data.totalCount})`;
+
+  const wrap = document.getElementById('cards');
+  wrap.innerHTML = '';
+
+  if(!data.items.length){
+    wrap.innerHTML = '<div class="badge">Нет данных для отображения. Перейдите в «Управление» и загрузите изображение.</div>';
+  } else {
+    data.items.forEach(x=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${x.url}" alt="">
+        <div class="card-body">
+          <div class="row">
+            <p class="title">${x.title}</p>
+            <span class="badge">Рейтинг: ${x.score}</span>
+          </div>
+          <div class="meta">👍 ${x.likes} &nbsp;&nbsp; 👎 ${x.dislikes}</div>
+          <div class="btns">
+            <button data-like="true" data-id="${x.id}">Нравится</button>
+            <button data-like="false" data-id="${x.id}" class="secondary">Не нравится</button>
+            <button data-unvote="true" data-id="${x.id}" class="secondary">Снять голос</button>
+          </div>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  wrap.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-id');
+      const userName = getUser();
+      if(!userName){ alert('Введите имя пользователя'); return; }
+
+      if(btn.getAttribute('data-unvote')){
+        await fetch(`/api/images/${id}/vote?userName=${encodeURIComponent(userName)}`, { method:'DELETE' });
+      } else {
+        const isLike = btn.getAttribute('data-like') === 'true';
+        await fetch(`/api/images/${id}/vote`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ userName, isLike })
+        });
+      }
+      load();
+    });
+  });
+
+  document.getElementById('prev').disabled = (data.page <= 1);
+  document.getElementById('next').disabled = (data.page >= pages);
+}
+
+document.getElementById('prev').addEventListener('click', ()=>{ page = Math.max(1, page-1); load(); });
+document.getElementById('next').addEventListener('click', ()=>{ page = page+1; load(); });
+
+loadNav().then(load);
+</script>
+</body>
+</html>

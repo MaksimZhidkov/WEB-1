@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Рейтинг</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="panel">
+    <div class="row" style="margin-bottom:10px">
+      <h2>Рейтинг изображений</h2>
+      <div class="btns">
+        <button class="secondary" id="refresh">Обновить</button>
+      </div>
+    </div>
+
+    <div id="list" class="cards"></div>
+  </div>
+</div>
+
+<script>
+async function loadNav(){
+  const r = await fetch('/pages/_nav.html');
+  document.getElementById('nav').innerHTML = await r.text();
+}
+
+async function load(){
+  const r = await fetch('/api/rating?top=50');
+  const data = await r.json();
+  const wrap = document.getElementById('list');
+  wrap.innerHTML = '';
+
+  if(!data.length){
+    wrap.innerHTML = '<div class="badge">Пока нет данных. Загрузите изображения и проголосуйте.</div>';
+    return;
+  }
+
+  data.forEach((x, idx)=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <img class="thumb" src="${x.url}" alt="">
+      <div class="card-body">
+        <div class="row">
+          <p class="title">${idx+1}. ${x.title}</p>
+          <span class="badge">Рейтинг: ${x.score}</span>
+        </div>
+        <div class="meta">👍 ${x.likes} &nbsp;&nbsp; 👎 ${x.dislikes}</div>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+document.getElementById('refresh').addEventListener('click', load);
+loadNav().then(load);
+</script>
+</body>
+</html>

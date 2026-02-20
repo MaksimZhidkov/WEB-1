@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Контакты</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="panel">
+    <h2>Контакты предприятия</h2>
+    <div class="hr"></div>
+    <div id="box"></div>
+  </div>
+</div>
+
+<script>
+async function loadNav(){
+  const r = await fetch('/pages/_nav.html');
+  document.getElementById('nav').innerHTML = await r.text();
+}
+async function load(){
+  const r = await fetch('/api/contacts');
+  const data = await r.json();
+  document.getElementById('box').innerHTML = `
+    <div class="grid">
+      <div class="col-6">
+        <div class="field">
+          <label>Организация</label>
+          <input value="${data.company}" readonly>
+        </div>
+        <div class="field">
+          <label>Адрес</label>
+          <input value="${data.address}" readonly>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="field">
+          <label>Телефон</label>
+          <input value="${data.phone}" readonly>
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input value="${data.email}" readonly>
+        </div>
+      </div>
+    </div>
+  `;
+}
+loadNav().then(load);
+</script>
+</body>
+</html>

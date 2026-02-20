@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Управление изображениями</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="panel">
+    <h2>Добавление и удаление изображений</h2>
+
+    <div class="grid">
+      <div class="col-6">
+        <form id="uploadForm">
+          <div class="field">
+            <label>Название изображения</label>
+            <input name="title" placeholder="Например: Логотип компании" required />
+          </div>
+          <div class="field">
+            <label>Файл (JPG/PNG/WEBP), до 5 МБ</label>
+            <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required />
+          </div>
+          <div class="btns">
+            <button type="submit">Загрузить на сервер</button>
+            <button type="button" class="secondary" id="refresh">Обновить список</button>
+          </div>
+          <div class="toast" id="status"></div>
+        </form>
+      </div>
+
+      <div class="col-6">
+        <div class="panel" style="padding:14px">
+          <h2 style="margin-bottom:8px">Правила</h2>
+          <p style="margin:0;color:var(--muted)">
+            Хранилище в памяти ограничено 50 записями. Файлы сохраняются на сервере в <code>wwwroot/uploads</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <h2>Последние загруженные</h2>
+    <div id="cards" class="cards"></div>
+  </div>
+</div>
+
+<script>
+async function loadNav(){
+  const r = await fetch('/pages/_nav.html');
+  document.getElementById('nav').innerHTML = await r.text();
+}
+
+function setStatus(text){
+  document.getElementById('status').textContent = text || '';
+}
+
+async function refresh(){
+  const r = await fetch('/api/images?page=1&pageSize=12');
+  const data = await r.json();
+
+  const wrap = document.getElementById('cards');
+  wrap.innerHTML = '';
+
+  if(!data.items.length){
+    wrap.innerHTML = '<div class="badge">Пока нет изображений. Загрузите первое.</div>';
+    return;
+  }
+
+  data.items.forEach(x => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img class="thumb" src="${x.url}" alt="">
+      <div class="card-body">
+        <div class="row">
+          <p class="title">${x.title}</p>
+          <span class="badge">Рейтинг: ${x.score}</span>
+        </div>
+        <div class="meta">👍 ${x.likes} &nbsp;&nbsp; 👎 ${x.dislikes}</div>
+        <div class="btns">
+          <button class="danger" data-id="${x.id}">Удалить</button>
+          <button class="secondary" onclick="window.open('${x.url}','_blank')">Открыть файл</button>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+
+  wrap.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-id');
+      const res = await fetch('/api/images/' + id, { method:'DELETE' });
+      if(res.status===204) refresh();
+      else alert('Ошибка удаления: ' + res.status);
+    });
+  });
+}
+
+document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  setStatus('Загрузка...');
+  const fd = new FormData(e.target);
+  const res = await fetch('/api/images/upload', { method:'POST', body: fd });
+
+  if(res.status===201){
+    e.target.reset();
+    setStatus('Готово: изображение загружено.');
+    refresh();
+  } else {
+    const msg = await res.text();
+    setStatus('');
+    alert('Ошибка загрузки: ' + res.status + '\\n' + msg);
+  }
+});
+
+document.getElementById('refresh').addEventListener('click', refresh);
+
+loadNav().then(refresh);
+</script>
+</body>
+</html>

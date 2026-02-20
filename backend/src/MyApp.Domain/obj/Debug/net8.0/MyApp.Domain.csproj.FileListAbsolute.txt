@@ -1,0 +1,11 @@
+/home/going-forward/lab-web/backend/src/MyApp.Domain/bin/Debug/net8.0/MyApp.Domain.deps.json
+/home/going-forward/lab-web/backend/src/MyApp.Domain/bin/Debug/net8.0/MyApp.Domain.dll
+/home/going-forward/lab-web/backend/src/MyApp.Domain/bin/Debug/net8.0/MyApp.Domain.pdb
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.AssemblyInfoInputs.cache
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.AssemblyInfo.cs
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.csproj.CoreCompileInputs.cache
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.dll
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/refint/MyApp.Domain.dll
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/MyApp.Domain.pdb
+/home/going-forward/lab-web/backend/src/MyApp.Domain/obj/Debug/net8.0/ref/MyApp.Domain.dll

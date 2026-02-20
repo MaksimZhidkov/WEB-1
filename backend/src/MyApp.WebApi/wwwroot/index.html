@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ЛР1 — Вариант 4</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <div class="container">
+    <div id="nav"></div>
+
+    <div class="panel">
+      <h2>Главная</h2>
+      <div class="grid">
+        <div class="col-6">
+          <p style="margin-top:0;color:var(--muted)">
+          </p>
+          <div class="btns">
+            <a class="badge" href="/pages/manage.html">Перейти к управлению</a>
+            <a class="badge" href="/pages/browse.html">Перейти к просмотру</a>
+            <a class="badge" href="/pages/rating.html">Перейти к рейтингу</a>
+            <a class="badge" href="/pages/contacts.html">Перейти к контактам</a>
+          </div>
+          <div class="hr"></div>
+          <p class="toast">Подсказка: если лимит 50 исчерпан — удалите несколько изображений.</p>
+        </div>
+
+        <div class="col-6">
+          <div class="panel" style="padding:14px">
+            <h2 style="margin-bottom:8px">API</h2>
+            <p style="margin:0;color:var(--muted)">
+            </p>
+            <div class="btns" style="margin-top:12px">
+              <button class="secondary" onclick="location.href='/swagger'">Открыть Swagger</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(async function(){
+  const r = await fetch('/pages/_nav.html');
+  document.getElementById('nav').innerHTML = await r.text();
+})();
+</script>
+</body>
+</html>

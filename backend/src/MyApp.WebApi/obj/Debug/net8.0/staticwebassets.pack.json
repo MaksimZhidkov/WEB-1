@@ -1,0 +1,49 @@
+{
+  "Files": [
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/assets/site.css",
+      "PackagePath": "staticwebassets/assets/site.css"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/index.html",
+      "PackagePath": "staticwebassets/index.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/_nav.html",
+      "PackagePath": "staticwebassets/pages/_nav.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/browse.html",
+      "PackagePath": "staticwebassets/pages/browse.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/contacts.html",
+      "PackagePath": "staticwebassets/pages/contacts.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/manage.html",
+      "PackagePath": "staticwebassets/pages/manage.html"
+    },
+    {
+      "Id": "/home/going-forward/lab-web/backend/src/MyApp.WebApi/wwwroot/pages/rating.html",
+      "PackagePath": "staticwebassets/pages/rating.html"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.MyApp.WebApi.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.MyApp.WebApi.props",
+      "PackagePath": "build\\MyApp.WebApi.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.MyApp.WebApi.props",
+      "PackagePath": "buildMultiTargeting\\MyApp.WebApi.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.MyApp.WebApi.props",
+      "PackagePath": "buildTransitive\\MyApp.WebApi.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
